@@ -13,6 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.kampplus.hava.ui.theme.HavaTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.saveable.rememberSaveable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,10 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HavaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Sümeyra",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    SayacEkrani(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -64,5 +69,25 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 fun GreetingPreview() {
     HavaTheme {
         Greeting("Sümeyra")
+    }
+}
+@Composable
+fun SayacEkrani(modifier: Modifier = Modifier) {
+    var count by rememberSaveable { mutableStateOf(0) }
+
+    Column(modifier = modifier.padding(16.dp)) {
+        Text(text = "Merhaba Kamp!")
+        Text(text = "Sayaç: $count")
+        Button(onClick = { count++ }) {
+            Text(text = "Artır")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SayacEkraniPreview() {
+    HavaTheme {
+        SayacEkrani()
     }
 }
