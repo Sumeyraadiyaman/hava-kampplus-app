@@ -6,7 +6,7 @@ class CityRepository(
     private val api: CityApi = ApiClient.cityApi
 ) {
     suspend fun search(sorgu: String): List<City> {
-        val response = api.search(name = sorgu, count = 10, language = "tr")
+        val response = api.search(name = sorgu, count = 20, language = "tr")
         return response.results ?: emptyList()
     }
 }

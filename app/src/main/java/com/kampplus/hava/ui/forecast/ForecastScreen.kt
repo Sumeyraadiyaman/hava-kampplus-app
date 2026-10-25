@@ -1,5 +1,12 @@
 package com.kampplus.hava.ui.forecast
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.kampplus.hava.model.HavaKalitesiSeviyesi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,22 +54,55 @@ import kotlin.math.roundToInt
 private val kartRengi = Color(0xFFE3F2FD)
 private val notRengi = Color(0xFFFFF3E0)
 
+private val konumIzinleri = arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION
+)
+
 @Composable
 fun ForecastScreen(
     onGeriClick: () -> Unit,
     modifier: Modifier = Modifier,
     onGunSecildi: (String) -> Unit = {},
+    onAramaClick: () -> Unit = {},
     viewModel: ForecastViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val izinIsteyici = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { sonuclar ->
+        viewModel.izinSonucu(verildi = sonuclar.values.any { verildi -> verildi })
+    }
+
+    var izinSoruldu by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(uiState.izinGerekli) {
+        if (uiState.izinGerekli && !izinSoruldu) {
+            izinSoruldu = true
+            izinIsteyici.launch(konumIzinleri)
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
-        TextButton(onClick = onGeriClick) {
-            Text(text = "← Geri")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (!uiState.konumModu) {
+                TextButton(onClick = onGeriClick) {
+                    Text(text = "← Geri")
+                }
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            if (uiState.konumModu) {
+                TextButton(onClick = onAramaClick) {
+                    Text(text = "🔍 Şehir ara")
+                }
+            }
         }
 
         when (val sonuc = uiState.sonuc) {
@@ -87,8 +127,14 @@ fun ForecastScreen(
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { viewModel.tekrarDene() }) {
-                    Text(text = "Tekrar dene")
+                if (uiState.izinGerekli) {
+                    Button(onClick = { izinIsteyici.launch(konumIzinleri) }) {
+                        Text(text = "📍 Konum izni ver")
+                    }
+                } else {
+                    Button(onClick = { viewModel.tekrarDene() }) {
+                        Text(text = "Tekrar dene")
+                    }
                 }
             }
 

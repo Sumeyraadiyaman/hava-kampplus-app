@@ -13,17 +13,31 @@ import com.kampplus.hava.ui.forecast.ForecastScreen
 import com.kampplus.hava.ui.forecast.ForecastViewModel
 import com.kampplus.hava.ui.forecast.GunDetayEkrani
 
-private const val TAHMIN_ROTASI = "forecast/{lat}/{lon}/{name}"
-
 @Composable
 fun HavaNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = "city",
+        startDestination = "home",
         modifier = modifier
     ) {
+        composable("home") {
+            ForecastScreen(
+                onGeriClick = {},
+                onAramaClick = {
+                    navController.navigate("city") {
+                        launchSingleTop = true
+                    }
+                },
+                onGunSecildi = { tarih ->
+                    navController.navigate("gun/$tarih") {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
         composable("city") {
             SehirListesiEkrani(
                 onSehirSecildi = { city ->
@@ -35,7 +49,7 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
             )
         }
 
-        composable(TAHMIN_ROTASI) {
+        composable("forecast/{lat}/{lon}/{name}") {
             ForecastScreen(
                 onGeriClick = { navController.popBackStack() },
                 onGunSecildi = { tarih ->
@@ -47,10 +61,11 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
         }
 
         composable("gun/{tarih}") { geriYiginKaydi ->
-            val tahminKaydi = remember(geriYiginKaydi) {
-                navController.getBackStackEntry(TAHMIN_ROTASI)
-            }
-            val tahminViewModel: ForecastViewModel = viewModel(tahminKaydi)
+            val oncekiKayit = remember(geriYiginKaydi) {
+                navController.previousBackStackEntry
+            } ?: return@composable
+
+            val tahminViewModel: ForecastViewModel = viewModel(oncekiKayit)
             val tarih = geriYiginKaydi.arguments?.getString("tarih") ?: ""
 
             GunDetayEkrani(

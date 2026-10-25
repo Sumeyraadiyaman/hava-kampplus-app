@@ -240,11 +240,12 @@ fun SehirListesiEkrani(
                             val plaka = if (turkiyeMi) Plakalar.bul(city.admin1) else null
                             val ulkeAdi = if (turkiyeMi) "Türkiye" else city.country
                             val konumBilgisi = listOfNotNull(city.admin1, ulkeAdi).joinToString(", ")
-
+                            val mesafe = uiState.mesafeler[city.id]
+                            val mesafeYazisi = if (mesafe != null) " · $mesafe km" else ""
                             SehirKarti(
                                 sehirAdi = city.name,
                                 plaka = plaka ?: bayrak,
-                                altBilgi = if (plaka != null) "$bayrak $konumBilgisi" else konumBilgisi,
+                                altBilgi = (if (plaka != null) "$bayrak $konumBilgisi" else konumBilgisi) + mesafeYazisi,
                                 secili = city.id == uiState.seciliSehirId,
                                 onClick = {
                                     viewModel.sehirSecildi(city)

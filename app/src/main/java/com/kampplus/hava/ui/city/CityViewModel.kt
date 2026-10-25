@@ -1,5 +1,8 @@
 package com.kampplus.hava.ui.city
 
+import com.kampplus.hava.data.SonKonum
+import com.kampplus.hava.data.mesafeKm
+import kotlin.math.roundToInt
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +21,8 @@ import kotlinx.coroutines.launch
 data class CityUiState(
     val aramaMetni: String = "",
     val sonuc: LoadState<List<City>> = LoadState.Empty,
-    val seciliSehirId: Long? = null
+    val seciliSehirId: Long? = null,
+    val mesafeler: Map<Long, Int> = emptyMap()
 )
 
 class CityViewModel : ViewModel() {
@@ -35,7 +39,7 @@ class CityViewModel : ViewModel() {
 
         aramaJob?.cancel()
         val sorgu = yeniMetin.trim()
-        if (sorgu.length < 2) {
+        if (sorgu.length < 3) {
             _uiState.update { mevcut -> mevcut.copy(sonuc = LoadState.Empty) }
             return
         }
@@ -63,12 +67,33 @@ class CityViewModel : ViewModel() {
     private suspend fun ara(sorgu: String) {
         _uiState.update { mevcut -> mevcut.copy(sonuc = LoadState.Loading) }
 
+        var mesafeler = emptyMap<Long, Int>()
+
         val yeniDurum = try {
             val sehirler = repository.search(sorgu)
-            if (sehirler.isEmpty()) {
+            val konum = SonKonum.deger
+
+            val siralanmis = if (konum == null) {
+                sehirler
+            } else {
+                mesafeler = sehirler.associate { city ->
+                    city.id to mesafeKm(
+                        konum.latitude, konum.longitude,
+                        city.latitude, city.longitude
+                    ).roundToInt()
+                }
+                sehirler.sortedWith(
+                    compareBy<City>(
+                        { city -> city.countryCode != konum.ulkeKodu },
+                        { city -> mesafeler[city.id] }
+                    )
+                )
+            }
+
+            if (siralanmis.isEmpty()) {
                 LoadState.Empty
             } else {
-                LoadState.Success(sehirler)
+                LoadState.Success(siralanmis)
             }
         } catch (e: CancellationException) {
             throw e
@@ -77,6 +102,6 @@ class CityViewModel : ViewModel() {
             LoadState.Error("Bağlantı kurulamadı. İnternetini kontrol et.")
         }
 
-        _uiState.update { mevcut -> mevcut.copy(sonuc = yeniDurum) }
+        _uiState.update { mevcut -> mevcut.copy(sonuc = yeniDurum, mesafeler = mesafeler) }
     }
 }
