@@ -40,10 +40,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.IconButton
-import com.kampplus.hava.data.CityRepository
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kampplus.hava.ui.city.CityViewModel
+import androidx.compose.material3.CircularProgressIndicator
+import com.kampplus.hava.ui.LoadState
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +122,7 @@ fun SayacEkraniPreview() {
 fun SehirKarti( sehirAdi: String,
                 plaka: String,
                 modifier: Modifier = Modifier,
+                altBilgi: String? = null,
                 secili: Boolean = false,
                 onClick: () -> Unit = {}) {
     val arkaPlanRengi = if (secili) Color(0xFF90CAF9) else Color(0xFFE3F2FD)
@@ -141,7 +143,15 @@ fun SehirKarti( sehirAdi: String,
             Text(text = plaka, color = Color.White)
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = sehirAdi)
+        Column {
+            Text(text = sehirAdi)
+            if (altBilgi != null) {
+                Text(
+                    text = altBilgi,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }
 
@@ -175,25 +185,62 @@ fun SehirListesiEkrani(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        if (uiState.sehirler.isEmpty()) {
+
+        if (uiState.aramaMetni.trim().length < 2) {
             Text(
-                text = "Şehir bulunamadı",
+                text = "Aramak için en az 2 harf yaz",
                 style = MaterialTheme.typography.bodyLarge
             )
         } else {
-            Text(
-                text = "${uiState.sehirler.size} şehir bulundu",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(uiState.sehirler) { sehir ->
-                    SehirKarti(
-                        sehirAdi = sehir.ad,
-                        plaka = sehir.plaka,
-                        secili = sehir.ad == uiState.seciliSehir,
-                        onClick = { viewModel.sehirSecildi(sehir) }
+            when (val sonuc = uiState.sonuc) {
+                is LoadState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is LoadState.Empty -> {
+                    Text(
+                        text = "Şehir bulunamadı",
+                        style = MaterialTheme.typography.bodyLarge
                     )
+                }
+
+                is LoadState.Error -> {
+                    Text(
+                        text = sonuc.message,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { viewModel.tekrarDene() }) {
+                        Text(text = "Tekrar dene")
+                    }
+                }
+
+                is LoadState.Success -> {
+                    Text(
+                        text = "${sonuc.data.size} şehir bulundu",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(sonuc.data, key = { city -> city.id }) { city ->
+                            SehirKarti(
+                                sehirAdi = city.name,
+                                plaka = city.countryCode ?: "?",
+                                altBilgi = listOfNotNull(city.admin1, city.country)
+                                    .joinToString(", "),
+                                secili = city.id == uiState.seciliSehirId,
+                                onClick = { viewModel.sehirSecildi(city) }
+                            )
+                        }
+                    }
                 }
             }
         }
