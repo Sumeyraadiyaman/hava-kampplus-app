@@ -39,6 +39,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -179,6 +180,13 @@ fun SehirListesiEkrani(modifier: Modifier = Modifier) {
             onValueChange = { yeniMetin -> aramaMetni = yeniMetin },
             label = { Text(text = "Şehir ara") },
             singleLine = true,
+            trailingIcon = {
+                if (aramaMetni.isNotEmpty()) {
+                    IconButton(onClick = { aramaMetni = "" }) {
+                        Text(text = "✕")
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -188,6 +196,11 @@ fun SehirListesiEkrani(modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyLarge
             )
         } else {
+            Text(
+                text = "${filtrelenmisSehirler.size} şehir bulundu",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filtrelenmisSehirler) { sehir ->
                     SehirKarti(
