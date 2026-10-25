@@ -15,10 +15,12 @@ fun gunlukNotlar(gun: DailyWeather): List<String> {
             else -> Unit
         }
 
-        if (gun.precipitationProbability >= 60) {
-            add("☂️ Şemsiyeni mutlaka yanına al")
-        } else if (gun.precipitationProbability >= 30) {
-            add("🌂 Yanına şemsiye almakta fayda var")
+        if (durum != WeatherCondition.SNOW) {
+            if (gun.precipitationProbability >= 60) {
+                add("☂️ Şemsiyeni mutlaka yanına al")
+            } else if (gun.precipitationProbability >= 30) {
+                add("🌂 Yanına şemsiye almakta fayda var")
+            }
         }
 
         if (gun.tempMin <= 0) {

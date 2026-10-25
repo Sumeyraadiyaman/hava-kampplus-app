@@ -1,5 +1,14 @@
 package com.kampplus.hava.ui.forecast
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import com.kampplus.hava.model.SporUygunlugu
+import com.kampplus.hava.model.sporUygunlugu
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -103,6 +112,10 @@ fun GunDetayIcerigi(
         }
 
         item {
+            SporKarti(spor = sporUygunlugu(gun, saatler))
+        }
+
+        item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = "Detaylar", style = MaterialTheme.typography.titleMedium)
 
@@ -173,6 +186,40 @@ fun GunDetayIcerigi(
                     )
                 }
             }
+        }
+    }
+}
+@Composable
+fun SporKarti(spor: SporUygunlugu) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFE8F5E9))
+            .padding(12.dp)
+    ) {
+        Text(text = "🏃 Spor uygunluğu", style = MaterialTheme.typography.titleSmall)
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "${spor.puan}/10",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(text = spor.baslik, style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { spor.puan / 10f },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = spor.aciklama, style = MaterialTheme.typography.bodyMedium)
+        if (spor.enUygunSaat != null) {
+            Text(
+                text = "⏰ En uygun saat: ${spor.enUygunSaat}",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
