@@ -41,3 +41,19 @@ fun uvSeviyesi(uv: Double): String = when {
     uv < 11 -> "Çok yüksek"
     else -> "Aşırı"
 }
+fun ondalik(sayi: Double): String = String.format(turkce, "%.1f", sayi)
+
+fun gunUzunlugu(dogus: String, batis: String): String {
+    fun dakikaya(tarihSaat: String): Int? {
+        val parcalar = saatKismi(tarihSaat).split(":")
+        if (parcalar.size < 2) return null
+        val saat = parcalar[0].toIntOrNull() ?: return null
+        val dakika = parcalar[1].toIntOrNull() ?: return null
+        return saat * 60 + dakika
+    }
+
+    val baslangic = dakikaya(dogus) ?: return "-"
+    val bitis = dakikaya(batis) ?: return "-"
+    val fark = bitis - baslangic
+    return "${fark / 60} sa ${fark % 60} dk"
+}

@@ -194,7 +194,7 @@ fun AnlikBolum(sehirAdi: String, anlik: CurrentWeather, bugun: DailyWeather?) {
 }
 
 @Composable
-fun BugunNotKarti(notlar: List<String>) {
+fun BugunNotKarti(notlar: List<String>, baslik: String = "💡 Bugün için") {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +202,7 @@ fun BugunNotKarti(notlar: List<String>) {
             .background(notRengi)
             .padding(12.dp)
     ) {
-        Text(text = "💡 Bugün için", style = MaterialTheme.typography.titleSmall)
+        Text(text = baslik, style = MaterialTheme.typography.titleSmall)
         Spacer(modifier = Modifier.height(4.dp))
         notlar.forEach { not ->
             Text(text = not, style = MaterialTheme.typography.bodyMedium)
@@ -211,9 +211,13 @@ fun BugunNotKarti(notlar: List<String>) {
 }
 
 @Composable
-fun SaatlikSerit(saatler: List<HourlyWeather>) {
+fun SaatlikSerit(
+    saatler: List<HourlyWeather>,
+    baslik: String = "Saatlik tahmin",
+    ilkSaatSimdi: Boolean = true
+) {
     Column {
-        Text(text = "Saatlik tahmin", style = MaterialTheme.typography.titleMedium)
+        Text(text = baslik, style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(saatler) { sira, saat ->
@@ -226,7 +230,7 @@ fun SaatlikSerit(saatler: List<HourlyWeather>) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (sira == 0) "Şimdi" else saatKismi(saat.time),
+                        text = if (sira == 0 && ilkSaatSimdi) "Şimdi" else saatKismi(saat.time),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Text(text = durum.emoji, style = MaterialTheme.typography.titleLarge)
