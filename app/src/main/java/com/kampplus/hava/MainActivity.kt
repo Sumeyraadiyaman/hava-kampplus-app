@@ -32,6 +32,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +46,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HavaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SayacEkrani(modifier = Modifier.padding(innerPadding))
+                    SehirListesiEkrani(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -106,10 +112,14 @@ fun SayacEkraniPreview() {
     }
 }
 @Composable
-fun SehirKarti(sehirAdi: String, plaka: String, modifier: Modifier = Modifier) {
+fun SehirKarti( sehirAdi: String,
+                plaka: String,
+                modifier: Modifier = Modifier,
+                onClick: () -> Unit = {}) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .background(Color(0xFFE3F2FD))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -124,5 +134,55 @@ fun SehirKarti(sehirAdi: String, plaka: String, modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = sehirAdi)
+    }
+}
+data class Sehir(val ad: String, val plaka: String)
+
+val sehirler = listOf(
+    Sehir("Adana", "01"),
+    Sehir("Ankara", "06"),
+    Sehir("Antalya", "07"),
+    Sehir("Bursa", "16"),
+    Sehir("Diyarbakır", "21"),
+    Sehir("Elazığ", "23"),
+    Sehir("Erzurum", "25"),
+    Sehir("Eskişehir", "26"),
+    Sehir("Gaziantep", "27"),
+    Sehir("İstanbul", "34"),
+    Sehir("İzmir", "35"),
+    Sehir("Konya", "42"),
+    Sehir("Malatya", "44"),
+    Sehir("Samsun", "55"),
+    Sehir("Trabzon", "61")
+)
+
+@Composable
+fun SehirListesiEkrani(modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            Text(
+                text = "Merhaba Kamp!",
+                style = MaterialTheme.typography.headlineSmall
+            )
+        }
+        items(sehirler) { sehir ->
+            SehirKarti(
+                sehirAdi = sehir.ad,
+                plaka = sehir.plaka,
+                onClick = { Log.d("SehirListesi", "Tıklandı: ${sehir.ad}") }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SehirKartiPreview() {
+    HavaTheme {
+        SehirKarti(sehirAdi = "Elazığ", plaka = "23")
     }
 }
