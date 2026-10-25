@@ -1,5 +1,8 @@
 package com.kampplus.hava
-
+import com.kampplus.hava.model.Plakalar
+import com.kampplus.hava.model.bayrakEmoji
+import com.kampplus.hava.model.City
+import com.kampplus.hava.ui.HavaNavHost
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -53,7 +56,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HavaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SehirListesiEkrani(modifier = Modifier.padding(innerPadding))
+                    HavaNavHost(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -160,6 +163,7 @@ fun SehirKarti( sehirAdi: String,
 @Composable
 fun SehirListesiEkrani(
     modifier: Modifier = Modifier,
+    onSehirSecildi: (City) -> Unit = {},
     viewModel: CityViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -231,13 +235,21 @@ fun SehirListesiEkrani(
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(sonuc.data, key = { city -> city.id }) { city ->
+                            val bayrak = bayrakEmoji(city.countryCode)
+                            val turkiyeMi = city.countryCode == "TR"
+                            val plaka = if (turkiyeMi) Plakalar.bul(city.admin1) else null
+                            val ulkeAdi = if (turkiyeMi) "Türkiye" else city.country
+                            val konumBilgisi = listOfNotNull(city.admin1, ulkeAdi).joinToString(", ")
+
                             SehirKarti(
                                 sehirAdi = city.name,
-                                plaka = city.countryCode ?: "?",
-                                altBilgi = listOfNotNull(city.admin1, city.country)
-                                    .joinToString(", "),
+                                plaka = plaka ?: bayrak,
+                                altBilgi = if (plaka != null) "$bayrak $konumBilgisi" else konumBilgisi,
                                 secili = city.id == uiState.seciliSehirId,
-                                onClick = { viewModel.sehirSecildi(city) }
+                                onClick = {
+                                    viewModel.sehirSecildi(city)
+                                    onSehirSecildi(city)
+                                }
                             )
                         }
                     }
