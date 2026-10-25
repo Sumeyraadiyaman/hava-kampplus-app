@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui.forecast
 
+import com.kampplus.hava.model.HavaKalitesiSeviyesi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -164,7 +165,11 @@ fun TahminIcerigi(
         }
 
         item {
-            BilgiKutulari(anlik = forecast.current, bugun = bugun)
+            BilgiKutulari(
+                anlik = forecast.current,
+                bugun = bugun,
+                havaKalitesi = forecast.airQuality?.current
+            )
         }
     }
 }
@@ -283,7 +288,7 @@ fun GunSatiri(gun: DailyWeather, etiket: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun BilgiKutulari(anlik: CurrentWeather, bugun: DailyWeather?) {
+fun BilgiKutulari(anlik: CurrentWeather, bugun: DailyWeather?, havaKalitesi: Int? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(text = "Detaylar", style = MaterialTheme.typography.titleMedium)
 
@@ -330,6 +335,16 @@ fun BilgiKutulari(anlik: CurrentWeather, bugun: DailyWeather?) {
                 deger = bugun?.let { gun -> saatKismi(gun.sunrise) } ?: "-",
                 alt = bugun?.let { gun -> "🌇 Batış ${saatKismi(gun.sunset)}" },
                 modifier = Modifier.weight(1f)
+            )
+        }
+
+        if (havaKalitesi != null) {
+            val seviye = HavaKalitesiSeviyesi.fromAqi(havaKalitesi)
+            BilgiKutusu(
+                baslik = "🌫️ Hava kalitesi",
+                deger = "$havaKalitesi",
+                alt = "${seviye.emoji} ${seviye.etiket}",
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

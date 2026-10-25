@@ -9,7 +9,11 @@ data class SporUygunlugu(
     val enUygunSaat: String?
 )
 
-fun sporUygunlugu(gun: DailyWeather, saatler: List<HourlyWeather>): SporUygunlugu {
+fun sporUygunlugu(
+    gun: DailyWeather,
+    saatler: List<HourlyWeather>,
+    havaKalitesi: Int? = null
+): SporUygunlugu {
     val durum = WeatherCondition.fromWeatherCode(gun.weatherCode)
     var puan = 10
     val nedenler = mutableListOf<String>()
@@ -77,7 +81,18 @@ fun sporUygunlugu(gun: DailyWeather, saatler: List<HourlyWeather>): SporUygunlug
         puan -= 1
         nedenler.add("yüksek UV")
     }
-
+    if (havaKalitesi != null) {
+        if (havaKalitesi >= 80) {
+            puan -= 4
+            nedenler.add("çok kötü hava kalitesi")
+        } else if (havaKalitesi >= 60) {
+            puan -= 3
+            nedenler.add("kötü hava kalitesi")
+        } else if (havaKalitesi >= 40) {
+            puan -= 1
+            nedenler.add("orta düzeyde hava kirliliği")
+        }
+    }
     puan = puan.coerceIn(1, 10)
 
     val baslik = when {

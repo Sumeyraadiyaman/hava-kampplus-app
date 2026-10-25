@@ -7,6 +7,7 @@ object ApiClient {
 
     private const val GEOCODING_BASE_URL = "https://geocoding-api.open-meteo.com/"
     private const val FORECAST_BASE_URL = "https://api.open-meteo.com/"
+    private const val AIR_QUALITY_BASE_URL = "https://air-quality-api.open-meteo.com/"
 
     val cityApi: CityApi = Retrofit.Builder()
         .baseUrl(GEOCODING_BASE_URL)
@@ -19,4 +20,11 @@ object ApiClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(ForecastApi::class.java)
+
+
+    val airQualityApi: AirQualityApi = Retrofit.Builder()
+        .baseUrl(AIR_QUALITY_BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(AirQualityApi::class.java)
 }

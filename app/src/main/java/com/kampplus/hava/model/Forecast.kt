@@ -3,7 +3,8 @@ package com.kampplus.hava.model
 data class Forecast(
     val current: CurrentWeather,
     val hourly: List<HourlyWeather>,
-    val daily: List<DailyWeather>
+    val daily: List<DailyWeather>,
+    val airQuality: AirQuality? = null
 )
 
 data class CurrentWeather(

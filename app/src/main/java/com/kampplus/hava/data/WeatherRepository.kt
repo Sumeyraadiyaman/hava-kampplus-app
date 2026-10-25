@@ -1,11 +1,32 @@
 package com.kampplus.hava.data
 
+import android.util.Log
+import com.kampplus.hava.model.AirQuality
 import com.kampplus.hava.model.Forecast
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class WeatherRepository(
-    private val api: ForecastApi = ApiClient.forecastApi
+    private val api: ForecastApi = ApiClient.forecastApi,
+    private val airQualityApi: AirQualityApi = ApiClient.airQualityApi
 ) {
-    suspend fun getForecast(latitude: Double, longitude: Double): Forecast {
+    suspend fun getForecast(latitude: Double, longitude: Double): Forecast = coroutineScope {
+        val tahminIstegi = async { tahminiGetir(latitude, longitude) }
+        val havaKalitesiIstegi = async { havaKalitesiniGetir(latitude, longitude) }
+
+        val tahmin = tahminIstegi.await()
+        val havaKalitesi = havaKalitesiIstegi.await()
+
+        Log.d(
+            "Tahmin",
+            "Hava kalitesi: şu an=${havaKalitesi?.current}, gün sayısı=${havaKalitesi?.dailyMax?.size}"
+        )
+
+        tahmin.copy(airQuality = havaKalitesi)
+    }
+
+    private suspend fun tahminiGetir(latitude: Double, longitude: Double): Forecast {
         val response = api.getForecast(
             latitude = latitude,
             longitude = longitude,
@@ -16,5 +37,23 @@ class WeatherRepository(
             timezone = "auto"
         )
         return response.toForecast()
+    }
+
+    private suspend fun havaKalitesiniGetir(latitude: Double, longitude: Double): AirQuality? {
+        return try {
+            airQualityApi.getAirQuality(
+                latitude = latitude,
+                longitude = longitude,
+                current = "european_aqi",
+                hourly = "european_aqi",
+                forecastDays = 5,
+                timezone = "auto"
+            ).toAirQuality()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("Tahmin", "Hava kalitesi alınamadı", e)
+            null
+        }
     }
 }

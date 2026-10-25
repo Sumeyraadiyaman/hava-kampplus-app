@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui.forecast
 
+import com.kampplus.hava.model.HavaKalitesiSeviyesi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -59,7 +60,12 @@ fun GunDetayEkrani(
             Text(text = "Bu gün için veri bulunamadı")
         } else {
             val saatler = forecast.hourly.filter { saat -> saat.time.startsWith(tarih) }
-            GunDetayIcerigi(sehirAdi = uiState.sehirAdi, gun = gun, saatler = saatler)
+            GunDetayIcerigi(
+                sehirAdi = uiState.sehirAdi,
+                gun = gun,
+                saatler = saatler,
+                havaKalitesi = forecast.airQuality?.dailyMax?.get(tarih)
+            )
         }
     }
 }
@@ -68,7 +74,8 @@ fun GunDetayEkrani(
 fun GunDetayIcerigi(
     sehirAdi: String,
     gun: DailyWeather,
-    saatler: List<HourlyWeather>
+    saatler: List<HourlyWeather>,
+    havaKalitesi: Int? = null
 ) {
     val durum = WeatherCondition.fromWeatherCode(gun.weatherCode)
 
@@ -112,7 +119,7 @@ fun GunDetayIcerigi(
         }
 
         item {
-            SporKarti(spor = sporUygunlugu(gun, saatler))
+            SporKarti(spor = sporUygunlugu(gun, saatler, havaKalitesi))
         }
 
         item {
@@ -183,6 +190,16 @@ fun GunDetayIcerigi(
                         baslik = "⏱️ Gün uzunluğu",
                         deger = gunUzunlugu(gun.sunrise, gun.sunset),
                         modifier = Modifier.weight(1f)
+                    )
+                }
+
+                if (havaKalitesi != null) {
+                    val seviye = HavaKalitesiSeviyesi.fromAqi(havaKalitesi)
+                    BilgiKutusu(
+                        baslik = "🌫️ Hava kalitesi",
+                        deger = "$havaKalitesi",
+                        alt = "${seviye.emoji} ${seviye.etiket} · günün en kötü saati",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
