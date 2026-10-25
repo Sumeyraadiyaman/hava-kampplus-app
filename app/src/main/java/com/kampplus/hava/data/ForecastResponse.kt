@@ -13,6 +13,7 @@ data class ForecastResponse(
 )
 
 data class CurrentDto(
+    val time: String?,
     @SerializedName("temperature_2m") val temperature: Double?,
     @SerializedName("apparent_temperature") val apparentTemperature: Double?,
     @SerializedName("weather_code") val weatherCode: Int?,
@@ -82,6 +83,7 @@ fun ForecastResponse.toForecast(): Forecast {
 
     return Forecast(
         current = CurrentWeather(
+            time = anlik.time ?: "",
             temperature = anlik.temperature ?: 0.0,
             apparentTemperature = anlik.apparentTemperature ?: 0.0,
             weatherCode = anlik.weatherCode ?: 0,

@@ -7,6 +7,7 @@ data class Forecast(
 )
 
 data class CurrentWeather(
+    val time: String,
     val temperature: Double,
     val apparentTemperature: Double,
     val weatherCode: Int,
