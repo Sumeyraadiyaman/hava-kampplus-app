@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui
 
+import com.kampplus.hava.ui.home.KonumlarimEkrani
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -27,7 +28,7 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
         composable("home") {
             AnaEkran(
                 onKonumlarimClick = {
-                    navController.navigate("city") {
+                    navController.navigate("konumlarim") {
                         launchSingleTop = true
                     }
                 },
@@ -36,6 +37,26 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+        composable("konumlarim") { geriYiginKaydi ->
+            val anaKayit = remember(geriYiginKaydi) {
+                navController.getBackStackEntry("home")
+            }
+            val anaEkranViewModel: AnaEkranViewModel = viewModel(anaKayit)
+
+            KonumlarimEkrani(
+                onGeriClick = { navController.popBackStack() },
+                onKonumSecildi = { sayfa ->
+                    anaEkranViewModel.sayfayaGit(sayfa)
+                    navController.popBackStack("home", inclusive = false)
+                },
+                onKonumEkleClick = {
+                    navController.navigate("city") {
+                        launchSingleTop = true
+                    }
+                },
+                viewModel = anaEkranViewModel
             )
         }
 

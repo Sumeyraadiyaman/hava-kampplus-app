@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui.home
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,15 @@ fun AnaEkran(
 ) {
     val konumlar by viewModel.konumlar.collectAsStateWithLifecycle()
     val sayfaDurumu = rememberPagerState(pageCount = { konumlar.size + 1 })
+    val gidilecekSayfa by viewModel.gidilecekSayfa.collectAsStateWithLifecycle()
 
+    LaunchedEffect(gidilecekSayfa, konumlar.size) {
+        val hedef = gidilecekSayfa ?: return@LaunchedEffect
+        if (hedef < sayfaDurumu.pageCount) {
+            sayfaDurumu.animateScrollToPage(hedef)
+            viewModel.sayfayaGidildi()
+        }
+    }
     Column(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
