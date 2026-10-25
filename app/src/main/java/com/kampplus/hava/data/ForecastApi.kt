@@ -10,6 +10,7 @@ interface ForecastApi {
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
         @Query("current") current: String,
+        @Query("hourly") hourly: String,
         @Query("daily") daily: String,
         @Query("forecast_days") forecastDays: Int,
         @Query("timezone") timezone: String

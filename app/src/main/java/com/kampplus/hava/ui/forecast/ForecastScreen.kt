@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui.forecast
 
+import com.kampplus.hava.model.gunlukNotlar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -149,33 +150,46 @@ fun TahminIcerigi(
 @Composable
 fun GunKarti(gun: DailyWeather) {
     val durum = WeatherCondition.fromWeatherCode(gun.weatherCode)
+    val notlar = gunlukNotlar(gun)
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFE3F2FD))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(12.dp)
     ) {
-        Text(
-            text = durum.emoji,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = tarihYaz(gun.date),
-                style = MaterialTheme.typography.titleSmall
+                text = durum.emoji,
+                style = MaterialTheme.typography.headlineSmall
             )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = tarihYaz(gun.date),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    text = "${durum.label} · Yağış %${gun.precipitationProbability}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             Text(
-                text = "${durum.label} · Yağış %${gun.precipitationProbability}",
+                text = "${gun.tempMax.roundToInt()}° / ${gun.tempMin.roundToInt()}°",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        notlar.forEach { not ->
+            Text(
+                text = not,
                 style = MaterialTheme.typography.bodySmall
             )
         }
-        Text(
-            text = "${gun.tempMax.roundToInt()}° / ${gun.tempMin.roundToInt()}°",
-            style = MaterialTheme.typography.titleMedium
-        )
     }
 }
 
