@@ -1,5 +1,6 @@
 package com.kampplus.hava.ui.home
 
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +47,7 @@ fun KonumlarimEkrani(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .padding(horizontal = 16.dp)
     ) {
         TextButton(onClick = onGeriClick) {

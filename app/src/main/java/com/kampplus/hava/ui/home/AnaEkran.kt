@@ -1,5 +1,8 @@
 package com.kampplus.hava.ui.home
 
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -55,28 +58,10 @@ fun AnaEkran(
             viewModel.sayfayaGidildi()
         }
     }
-    Column(modifier = modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-        ) {
-            SayfaNoktalari(
-                toplam = konumlar.size + 1,
-                secili = sayfaDurumu.currentPage,
-                modifier = Modifier.align(Alignment.Center)
-            )
-            TextButton(
-                onClick = onKonumlarimClick,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
-                Text(text = "☰ Konumlarım")
-            }
-        }
-
+    Box(modifier = modifier.fillMaxSize()) {
         HorizontalPager(
             state = sayfaDurumu,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxSize(),
             key = { sayfa ->
                 if (sayfa == 0) {
                     KONUMUM_ANAHTARI
@@ -104,6 +89,26 @@ fun AnaEkran(
                         viewModel = kayitliKonumViewModel(konum, anahtar)
                     )
                 }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp)
+        ) {
+            SayfaNoktalari(
+                toplam = konumlar.size + 1,
+                secili = sayfaDurumu.currentPage,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            TextButton(
+                onClick = onKonumlarimClick,
+                modifier = Modifier.align(Alignment.CenterEnd),
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text(text = "☰ Konumlarım")
             }
         }
     }
@@ -138,9 +143,9 @@ fun SayfaNoktalari(toplam: Int, secili: Int, modifier: Modifier = Modifier) {
     ) {
         repeat(toplam) { sira ->
             val renk = if (sira == secili) {
-                MaterialTheme.colorScheme.primary
+                Color.White
             } else {
-                MaterialTheme.colorScheme.outlineVariant
+                Color.White.copy(alpha = 0.4f)
             }
             Box(
                 modifier = Modifier

@@ -1,5 +1,11 @@
 package com.kampplus.hava.ui.forecast
 
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChipDefaults
+import com.kampplus.hava.ui.theme.HavaArkaPlani
+import com.kampplus.hava.ui.theme.havaGorunumu
+import com.kampplus.hava.ui.theme.varsayilanGorunum
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,8 +57,8 @@ import com.kampplus.hava.model.gunlukNotlar
 import com.kampplus.hava.ui.LoadState
 import kotlin.math.roundToInt
 
-private val kartRengi = Color(0xFFE3F2FD)
-private val notRengi = Color(0xFFFFF3E0)
+private val kartRengi = Color.White.copy(alpha = 0.18f)
+private val notRengi = Color.White.copy(alpha = 0.25f)
 
 private val konumIzinleri = arrayOf(
     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -84,71 +90,86 @@ fun ForecastScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        if (ustCubukGoster) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (!uiState.konumModu) {
-                    TextButton(onClick = onGeriClick) {
-                        Text(text = "← Geri")
-                    }
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                if (uiState.konumModu) {
-                    TextButton(onClick = onAramaClick) {
-                        Text(text = "🔍 Şehir ara")
-                    }
-                }
-            }
-        }
+    val gorunum = when (val sonuc = uiState.sonuc) {
+        is LoadState.Success -> havaGorunumu(
+            WeatherCondition.fromWeatherCode(sonuc.data.current.weatherCode),
+            sonuc.data.current.isDay
+        )
+        else -> varsayilanGorunum
+    }
 
-        when (val sonuc = uiState.sonuc) {
-            is LoadState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp),
-                    contentAlignment = Alignment.Center
+    HavaArkaPlani(gorunum = gorunum, modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(horizontal = 16.dp)
+                .padding(top = if (ustCubukGoster) 0.dp else 40.dp)
+        ) {
+            if (ustCubukGoster) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            is LoadState.Empty -> {
-                Text(text = "Tahmin verisi bulunamadı")
-            }
-
-            is LoadState.Error -> {
-                Text(
-                    text = sonuc.message,
-                    color = MaterialTheme.colorScheme.error
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                if (uiState.izinGerekli) {
-                    Button(onClick = { izinIsteyici.launch(konumIzinleri) }) {
-                        Text(text = "📍 Konum izni ver")
+                    if (!uiState.konumModu) {
+                        TextButton(
+                            onClick = onGeriClick,
+                            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                        ) {
+                            Text(text = "← Geri")
+                        }
                     }
-                } else {
-                    Button(onClick = { viewModel.tekrarDene() }) {
-                        Text(text = "Tekrar dene")
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (uiState.konumModu) {
+                        TextButton(
+                            onClick = onAramaClick,
+                            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                        ) {
+                            Text(text = "🔍 Şehir ara")
+                        }
                     }
                 }
             }
 
-            is LoadState.Success -> {
-                TahminIcerigi(
-                    sehirAdi = uiState.sehirAdi,
-                    forecast = sonuc.data,
-                    gunSayisi = uiState.gunSayisi,
-                    onGunSayisiSecildi = { gun -> viewModel.gunSayisiSecildi(gun) },
-                    onGunSecildi = onGunSecildi
-                )
+            when (val sonuc = uiState.sonuc) {
+                is LoadState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                    }
+                }
+
+                is LoadState.Empty -> {
+                    Text(text = "Tahmin verisi bulunamadı")
+                }
+
+                is LoadState.Error -> {
+                    Text(text = sonuc.message)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (uiState.izinGerekli) {
+                        Button(onClick = { izinIsteyici.launch(konumIzinleri) }) {
+                            Text(text = "📍 Konum izni ver")
+                        }
+                    } else {
+                        Button(onClick = { viewModel.tekrarDene() }) {
+                            Text(text = "Tekrar dene")
+                        }
+                    }
+                }
+
+                is LoadState.Success -> {
+                    TahminIcerigi(
+                        sehirAdi = uiState.sehirAdi,
+                        forecast = sonuc.data,
+                        gunSayisi = uiState.gunSayisi,
+                        onGunSayisiSecildi = { gun -> viewModel.gunSayisiSecildi(gun) },
+                        onGunSecildi = onGunSecildi
+                    )
+                }
             }
         }
     }
@@ -192,12 +213,22 @@ fun TahminIcerigi(
                 FilterChip(
                     selected = gunSayisi == 7,
                     onClick = { onGunSayisiSecildi(7) },
-                    label = { Text(text = "7 gün") }
+                    label = { Text(text = "7 gün") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        labelColor = Color.White,
+                        selectedLabelColor = Color.White,
+                        selectedContainerColor = Color.White.copy(alpha = 0.3f)
+                    )
                 )
                 FilterChip(
                     selected = gunSayisi == 15,
                     onClick = { onGunSayisiSecildi(15) },
-                    label = { Text(text = "15 gün") }
+                    label = { Text(text = "15 gün") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        labelColor = Color.White,
+                        selectedLabelColor = Color.White,
+                        selectedContainerColor = Color.White.copy(alpha = 0.3f)
+                    )
                 )
             }
         }

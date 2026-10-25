@@ -1,5 +1,11 @@
 package com.kampplus.hava.ui.forecast
 
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ProgressIndicatorDefaults
+import com.kampplus.hava.ui.theme.HavaArkaPlani
+import com.kampplus.hava.ui.theme.havaGorunumu
+import com.kampplus.hava.ui.theme.varsayilanGorunum
 import com.kampplus.hava.model.HavaKalitesiSeviyesi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
@@ -47,25 +53,37 @@ fun GunDetayEkrani(
     val forecast = (uiState.sonuc as? LoadState.Success)?.data
     val gun = forecast?.daily?.find { gunluk -> gunluk.date == tarih }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        TextButton(onClick = onGeriClick) {
-            Text(text = "← Geri")
-        }
+    val gorunum = if (gun != null) {
+        havaGorunumu(WeatherCondition.fromWeatherCode(gun.weatherCode), gunduz = true)
+    } else {
+        varsayilanGorunum
+    }
 
-        if (forecast == null || gun == null) {
-            Text(text = "Bu gün için veri bulunamadı")
-        } else {
-            val saatler = forecast.hourly.filter { saat -> saat.time.startsWith(tarih) }
-            GunDetayIcerigi(
-                sehirAdi = uiState.sehirAdi,
-                gun = gun,
-                saatler = saatler,
-                havaKalitesi = forecast.airQuality?.dailyMax?.get(tarih)
-            )
+    HavaArkaPlani(gorunum = gorunum, modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(horizontal = 16.dp)
+        ) {
+            TextButton(
+                onClick = onGeriClick,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+            ) {
+                Text(text = "← Geri")
+            }
+
+            if (forecast == null || gun == null) {
+                Text(text = "Bu gün için veri bulunamadı")
+            } else {
+                val saatler = forecast.hourly.filter { saat -> saat.time.startsWith(tarih) }
+                GunDetayIcerigi(
+                    sehirAdi = uiState.sehirAdi,
+                    gun = gun,
+                    saatler = saatler,
+                    havaKalitesi = forecast.airQuality?.dailyMax?.get(tarih)
+                )
+            }
         }
     }
 }
@@ -212,7 +230,7 @@ fun SporKarti(spor: SporUygunlugu) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFE8F5E9))
+            .background(Color.White.copy(alpha = 0.18f))
             .padding(12.dp)
     ) {
         Text(text = "🏃 Spor uygunluğu", style = MaterialTheme.typography.titleSmall)
@@ -228,7 +246,9 @@ fun SporKarti(spor: SporUygunlugu) {
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
             progress = { spor.puan / 10f },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.White,
+            trackColor = Color.White.copy(alpha = 0.3f)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = spor.aciklama, style = MaterialTheme.typography.bodyMedium)
