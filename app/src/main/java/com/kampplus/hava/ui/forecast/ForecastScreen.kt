@@ -65,6 +65,7 @@ fun ForecastScreen(
     modifier: Modifier = Modifier,
     onGunSecildi: (String) -> Unit = {},
     onAramaClick: () -> Unit = {},
+    ustCubukGoster: Boolean = true,
     viewModel: ForecastViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,19 +89,21 @@ fun ForecastScreen(
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (!uiState.konumModu) {
-                TextButton(onClick = onGeriClick) {
-                    Text(text = "← Geri")
+        if (ustCubukGoster) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!uiState.konumModu) {
+                    TextButton(onClick = onGeriClick) {
+                        Text(text = "← Geri")
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            if (uiState.konumModu) {
-                TextButton(onClick = onAramaClick) {
-                    Text(text = "🔍 Şehir ara")
+                Spacer(modifier = Modifier.weight(1f))
+                if (uiState.konumModu) {
+                    TextButton(onClick = onAramaClick) {
+                        Text(text = "🔍 Şehir ara")
+                    }
                 }
             }
         }

@@ -9,9 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kampplus.hava.SehirListesiEkrani
-import com.kampplus.hava.ui.forecast.ForecastScreen
 import com.kampplus.hava.ui.forecast.ForecastViewModel
 import com.kampplus.hava.ui.forecast.GunDetayEkrani
+import com.kampplus.hava.ui.home.AnaEkran
+import com.kampplus.hava.ui.home.AnaEkranViewModel
+import com.kampplus.hava.ui.home.KONUMUM_ANAHTARI
 
 @Composable
 fun HavaNavHost(modifier: Modifier = Modifier) {
@@ -23,50 +25,43 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         composable("home") {
-            ForecastScreen(
-                onGeriClick = {},
-                onAramaClick = {
+            AnaEkran(
+                onKonumlarimClick = {
                     navController.navigate("city") {
                         launchSingleTop = true
                     }
                 },
-                onGunSecildi = { tarih ->
-                    navController.navigate("gun/$tarih") {
+                onGunSecildi = { anahtar, tarih ->
+                    navController.navigate("gun/${Uri.encode(anahtar)}/$tarih") {
                         launchSingleTop = true
                     }
                 }
             )
         }
 
-        composable("city") {
+        composable("city") { geriYiginKaydi ->
+            val anaKayit = remember(geriYiginKaydi) {
+                navController.getBackStackEntry("home")
+            }
+            val anaEkranViewModel: AnaEkranViewModel = viewModel(anaKayit)
+
             SehirListesiEkrani(
                 onSehirSecildi = { city ->
-                    val ad = Uri.encode(city.name)
-                    navController.navigate("forecast/${city.latitude}/${city.longitude}/$ad") {
-                        launchSingleTop = true
+                    anaEkranViewModel.ekle(city)
+                    if (navController.currentDestination?.route == "city") {
+                        navController.popBackStack()
                     }
                 }
             )
         }
 
-        composable("forecast/{lat}/{lon}/{name}") {
-            ForecastScreen(
-                onGeriClick = { navController.popBackStack() },
-                onGunSecildi = { tarih ->
-                    navController.navigate("gun/$tarih") {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        composable("gun/{tarih}") { geriYiginKaydi ->
-            val oncekiKayit = remember(geriYiginKaydi) {
-                navController.previousBackStackEntry
-            } ?: return@composable
-
-            val tahminViewModel: ForecastViewModel = viewModel(oncekiKayit)
+        composable("gun/{anahtar}/{tarih}") { geriYiginKaydi ->
+            val anaKayit = remember(geriYiginKaydi) {
+                navController.getBackStackEntry("home")
+            }
+            val anahtar = geriYiginKaydi.arguments?.getString("anahtar") ?: KONUMUM_ANAHTARI
             val tarih = geriYiginKaydi.arguments?.getString("tarih") ?: ""
+            val tahminViewModel: ForecastViewModel = viewModel(anaKayit, key = anahtar)
 
             GunDetayEkrani(
                 tarih = tarih,
