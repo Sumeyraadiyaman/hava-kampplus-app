@@ -41,6 +41,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.IconButton
 import com.kampplus.hava.data.CityRepository
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kampplus.hava.ui.city.CityViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -145,12 +148,11 @@ fun SehirKarti( sehirAdi: String,
 
 
 @Composable
-fun SehirListesiEkrani(modifier: Modifier = Modifier) {
-    var seciliSehir by rememberSaveable { mutableStateOf<String?>(null) }
-    var aramaMetni by rememberSaveable { mutableStateOf("") }
-
-    val repository = remember { CityRepository() }
-    val filtrelenmisSehirler = repository.sehirAra(aramaMetni)
+fun SehirListesiEkrani(
+    modifier: Modifier = Modifier,
+    viewModel: CityViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
@@ -159,13 +161,13 @@ fun SehirListesiEkrani(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
-            value = aramaMetni,
-            onValueChange = { yeniMetin -> aramaMetni = yeniMetin },
+            value = uiState.aramaMetni,
+            onValueChange = { yeniMetin -> viewModel.aramaDegisti(yeniMetin) },
             label = { Text(text = "Şehir ara") },
             singleLine = true,
             trailingIcon = {
-                if (aramaMetni.isNotEmpty()) {
-                    IconButton(onClick = { aramaMetni = "" }) {
+                if (uiState.aramaMetni.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.aramaDegisti("") }) {
                         Text(text = "✕")
                     }
                 }
@@ -173,27 +175,24 @@ fun SehirListesiEkrani(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        if (filtrelenmisSehirler.isEmpty()) {
+        if (uiState.sehirler.isEmpty()) {
             Text(
                 text = "Şehir bulunamadı",
                 style = MaterialTheme.typography.bodyLarge
             )
         } else {
             Text(
-                text = "${filtrelenmisSehirler.size} şehir bulundu",
+                text = "${uiState.sehirler.size} şehir bulundu",
                 style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(filtrelenmisSehirler) { sehir ->
+                items(uiState.sehirler) { sehir ->
                     SehirKarti(
                         sehirAdi = sehir.ad,
                         plaka = sehir.plaka,
-                        secili = sehir.ad == seciliSehir,
-                        onClick = {
-                            seciliSehir = sehir.ad
-                            Log.d("SehirListesi", "Tıklandı: ${sehir.ad}")
-                        }
+                        secili = sehir.ad == uiState.seciliSehir,
+                        onClick = { viewModel.sehirSecildi(sehir) }
                     )
                 }
             }
