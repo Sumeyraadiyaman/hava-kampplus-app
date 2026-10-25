@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,12 +116,14 @@ fun SayacEkraniPreview() {
 fun SehirKarti( sehirAdi: String,
                 plaka: String,
                 modifier: Modifier = Modifier,
+                secili: Boolean = false,
                 onClick: () -> Unit = {}) {
+    val arkaPlanRengi = if (secili) Color(0xFF90CAF9) else Color(0xFFE3F2FD)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(Color(0xFFE3F2FD))
+            .background(arkaPlanRengi)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -158,23 +161,46 @@ val sehirler = listOf(
 
 @Composable
 fun SehirListesiEkrani(modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
+    var seciliSehir by rememberSaveable { mutableStateOf<String?>(null) }
+    var aramaMetni by rememberSaveable { mutableStateOf("") }
+
+    val filtrelenmisSehirler = sehirler.filter { sehir ->
+        sehir.ad.contains(aramaMetni, ignoreCase = true)
+    }
+
+    Column(modifier = modifier.padding(16.dp)) {
+        Text(
+            text = "Merhaba Kamp!",
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = aramaMetni,
+            onValueChange = { yeniMetin -> aramaMetni = yeniMetin },
+            label = { Text(text = "Şehir ara") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        if (filtrelenmisSehirler.isEmpty()) {
             Text(
-                text = "Merhaba Kamp!",
-                style = MaterialTheme.typography.headlineSmall
+                text = "Şehir bulunamadı",
+                style = MaterialTheme.typography.bodyLarge
             )
-        }
-        items(sehirler) { sehir ->
-            SehirKarti(
-                sehirAdi = sehir.ad,
-                plaka = sehir.plaka,
-                onClick = { Log.d("SehirListesi", "Tıklandı: ${sehir.ad}") }
-            )
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(filtrelenmisSehirler) { sehir ->
+                    SehirKarti(
+                        sehirAdi = sehir.ad,
+                        plaka = sehir.plaka,
+                        secili = sehir.ad == seciliSehir,
+                        onClick = {
+                            seciliSehir = sehir.ad
+                            Log.d("SehirListesi", "Tıklandı: ${sehir.ad}")
+                        }
+                    )
+                }
+            }
         }
     }
 }
