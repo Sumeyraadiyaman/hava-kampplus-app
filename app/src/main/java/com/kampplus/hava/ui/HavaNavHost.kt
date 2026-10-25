@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kampplus.hava.SehirListesiEkrani
+import com.kampplus.hava.ui.home.KonumEkleEkrani
 import com.kampplus.hava.ui.forecast.ForecastViewModel
 import com.kampplus.hava.ui.forecast.GunDetayEkrani
 import com.kampplus.hava.ui.home.AnaEkran
@@ -52,7 +52,7 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
                     navController.popBackStack("home", inclusive = false)
                 },
                 onKonumEkleClick = {
-                    navController.navigate("city") {
+                    navController.navigate("konum_ekle") {
                         launchSingleTop = true
                     }
                 },
@@ -60,16 +60,11 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
             )
         }
 
-        composable("city") { geriYiginKaydi ->
-            val anaKayit = remember(geriYiginKaydi) {
-                navController.getBackStackEntry("home")
-            }
-            val anaEkranViewModel: AnaEkranViewModel = viewModel(anaKayit)
-
-            SehirListesiEkrani(
-                onSehirSecildi = { city ->
-                    anaEkranViewModel.ekle(city)
-                    if (navController.currentDestination?.route == "city") {
+        composable("konum_ekle") {
+            KonumEkleEkrani(
+                onGeriClick = { navController.popBackStack() },
+                onEklendi = {
+                    if (navController.currentDestination?.route == "konum_ekle") {
                         navController.popBackStack()
                     }
                 }

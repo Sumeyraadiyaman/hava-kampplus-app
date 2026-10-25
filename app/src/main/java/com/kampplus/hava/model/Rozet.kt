@@ -9,13 +9,19 @@ private fun ilAdiniSadelestir(ad: String): String =
         .replace("â", "a")
         .replace("î", "i")
         .replace("û", "u")
+        .replace("ı", "i")
+        .replace("ğ", "g")
+        .replace("ü", "u")
+        .replace("ş", "s")
+        .replace("ö", "o")
+        .replace("ç", "c")
         .removeSuffix(" ili")
         .removeSuffix(" province")
         .trim()
 
 object Plakalar {
 
-    private val tablo: Map<String, String> = mapOf(
+    private val ilTablosu: Map<String, String> = mapOf(
         "Adana" to "01", "Adıyaman" to "02", "Afyonkarahisar" to "03", "Ağrı" to "04",
         "Amasya" to "05", "Ankara" to "06", "Antalya" to "07", "Artvin" to "08",
         "Aydın" to "09", "Balıkesir" to "10", "Bilecik" to "11", "Bingöl" to "12",
@@ -38,7 +44,20 @@ object Plakalar {
         "Yalova" to "77", "Karabük" to "78", "Kilis" to "79", "Osmaniye" to "80",
         "Düzce" to "81",
         "İçel" to "33", "Afyon" to "03"
-    ).mapKeys { (ad, _) -> ilAdiniSadelestir(ad) }
+    )
+
+    private val tablo: Map<String, String> =
+        ilTablosu.mapKeys { (ad, _) -> ilAdiniSadelestir(ad) }
+
+    private val eskiAdlar = setOf("İçel", "Afyon")
+
+    fun ilAra(sorgu: String): List<String> {
+        val aranan = ilAdiniSadelestir(sorgu)
+        if (aranan.isEmpty()) return emptyList()
+        return ilTablosu.keys.filter { il ->
+            il !in eskiAdlar && ilAdiniSadelestir(il).startsWith(aranan)
+        }
+    }
 
     fun bul(ilAdi: String?): String? {
         if (ilAdi == null) return null
