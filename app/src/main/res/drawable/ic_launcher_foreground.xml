@@ -4,26 +4,25 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-
-    <!-- Güneş ışınları -->
+    <!-- Güneşin parıltısı -->
     <path
-        android:pathData="M84,42 L89,42 M78.7,29.3 L82.3,25.7 M66,24 L66,19 M53.3,29.3 L49.7,25.7 M48,42 L43,42 M78.7,54.7 L82.3,58.3"
-        android:strokeWidth="3"
-        android:strokeColor="#FFFFD54F"
-        android:strokeLineCap="round" />
-
+        android:fillColor="#55FFE082"
+        android:pathData="M41,44a19,19 0,1 1,38 0a19,19 0,1 1,-38 0Z" />
     <!-- Güneş -->
     <path
-        android:pathData="M52,42 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0 z"
-        android:fillColor="#FFFFCA28" />
-
-    <!-- Bulut gölgesi -->
-    <path
-        android:pathData="M32,66 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 z M42,58 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 z M60,66 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 z M44,66 h28 v12 h-28 z"
-        android:fillColor="#33000000" />
-
+        android:fillColor="#FFFFB300"
+        android:pathData="M47,44a13,13 0,1 1,26 0a13,13 0,1 1,-26 0Z" />
     <!-- Bulut -->
     <path
-        android:pathData="M32,64 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 z M42,56 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 z M60,64 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 z M44,64 h28 v12 h-28 z"
-        android:fillColor="#FFFFFFFF" />
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M33,62a11,11 0,1 1,22 0a11,11 0,1 1,-22 0Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M44,57a13,13 0,1 1,26 0a13,13 0,1 1,-26 0Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M60,64a9,9 0,1 1,18 0a9,9 0,1 1,-18 0Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M43,63h22a7,7 0,0 1,0 14h-22a7,7 0,0 1,0 -14Z" />
 </vector>
