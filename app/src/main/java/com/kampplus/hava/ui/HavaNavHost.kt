@@ -1,6 +1,5 @@
 package com.kampplus.hava.ui
 
-import com.kampplus.hava.ui.home.KonumlarimEkrani
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -9,12 +8,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kampplus.hava.ui.home.KonumEkleEkrani
 import com.kampplus.hava.ui.forecast.ForecastViewModel
 import com.kampplus.hava.ui.forecast.GunDetayEkrani
 import com.kampplus.hava.ui.home.AnaEkran
 import com.kampplus.hava.ui.home.AnaEkranViewModel
 import com.kampplus.hava.ui.home.KONUMUM_ANAHTARI
+import com.kampplus.hava.ui.home.KonumEkleEkrani
+import com.kampplus.hava.ui.home.KonumlarimEkrani
 
 @Composable
 fun HavaNavHost(modifier: Modifier = Modifier) {
@@ -32,6 +32,11 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
                         launchSingleTop = true
                     }
                 },
+                onKonumEkleClick = {
+                    navController.navigate("konum_ekle") {
+                        launchSingleTop = true
+                    }
+                },
                 onGunSecildi = { anahtar, tarih ->
                     navController.navigate("gun/${Uri.encode(anahtar)}/$tarih") {
                         launchSingleTop = true
@@ -39,6 +44,7 @@ fun HavaNavHost(modifier: Modifier = Modifier) {
                 }
             )
         }
+
         composable("konumlarim") { geriYiginKaydi ->
             val anaKayit = remember(geriYiginKaydi) {
                 navController.getBackStackEntry("home")

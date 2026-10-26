@@ -2,130 +2,114 @@ package com.kampplus.hava.ui.theme
 
 import androidx.compose.ui.graphics.Color
 import com.kampplus.hava.model.WeatherCondition
-import java.util.Calendar
 
-enum class HavaEfekti { YOK, GUNES, SICAK, CICEK, YILDIZ, BULUT, SIS, YAGMUR, KAR, FIRTINA }
+enum class HavaEfekti {
+    YOK, GUNES, SICAK, ILKBAHAR, SONBAHAR, YILDIZ, BULUT, SIS, YAGMUR, KAR, FIRTINA
+}
 
 data class HavaGorunumu(
     val renkler: List<Color>,
-    val efekt: HavaEfekti,
-    val vurgu: Color
+    val efekt: HavaEfekti
 )
 
 val varsayilanGorunum = HavaGorunumu(
-    renkler = listOf(Color(0xFF2B5DA8), Color(0xFF4F86C6), Color(0xFF8DB7E3)),
-    efekt = HavaEfekti.YOK,
-    vurgu = Color(0xFF1565C0)
+    renkler = listOf(Color(0xFF2F5FA7), Color(0xFF5B8ED6), Color(0xFF9CC0EE)),
+    efekt = HavaEfekti.YOK
 )
 
 val menuGorunumu = HavaGorunumu(
-    renkler = listOf(Color(0xFF1A237E), Color(0xFF3949AB), Color(0xFF7E57C2)),
-    efekt = HavaEfekti.YOK,
-    vurgu = Color(0xFF3949AB)
+    renkler = listOf(Color(0xFF241A55), Color(0xFF4A3A9C), Color(0xFF8A6FD8)),
+    efekt = HavaEfekti.YILDIZ
 )
 
-fun mevcutAy(): Int = Calendar.getInstance().get(Calendar.MONTH) + 1
-
-fun tarihtenAy(tarih: String): Int =
-    if (tarih.length >= 7) tarih.substring(5, 7).toIntOrNull() ?: mevcutAy() else mevcutAy()
+/** "2026-10-25T17:30" ya da "2026-10-25" metninden ayı (1-12) çıkarır. */
+fun ayBul(tarih: String): Int = tarih.drop(5).take(2).toIntOrNull() ?: 1
 
 fun havaGorunumu(
     kosul: WeatherCondition,
     gunduz: Boolean,
-    sicaklik: Double? = null,
-    ay: Int = mevcutAy()
+    ay: Int = 1,
+    sicaklik: Double = 15.0
 ): HavaGorunumu {
-    val ilkbahar = ay in 3..5
-    val sicak = (sicaklik ?: 0.0) >= 27.0
+    val acikHava = kosul == WeatherCondition.CLEAR ||
+        kosul == WeatherCondition.MOSTLY_CLEAR ||
+        kosul == WeatherCondition.PARTLY_CLOUDY
 
-    return when (kosul) {
-        WeatherCondition.CLEAR, WeatherCondition.MOSTLY_CLEAR -> when {
-            !gunduz -> HavaGorunumu(
-                listOf(Color(0xFF0B1026), Color(0xFF1B2A5C), Color(0xFF3A3F7A)),
-                HavaEfekti.YILDIZ,
-                Color(0xFF3949AB)
+    if (acikHava && gunduz) {
+        return when {
+            sicaklik >= 27 -> HavaGorunumu(
+                listOf(Color(0xFFC62828), Color(0xFFEF6C3A), Color(0xFFFFB04F)),
+                HavaEfekti.SICAK
             )
-            sicak -> HavaGorunumu(
-                listOf(Color(0xFFD7263D), Color(0xFFF46036), Color(0xFFFFB347)),
-                HavaEfekti.SICAK,
-                Color(0xFFD84315)
+            ay in 3..5 -> HavaGorunumu(
+                listOf(Color(0xFF2E9BEA), Color(0xFF74C7F2), Color(0xFFB5E3A0)),
+                HavaEfekti.ILKBAHAR
             )
-            ilkbahar -> HavaGorunumu(
-                listOf(Color(0xFF3FA7E0), Color(0xFF7FD1C7), Color(0xFFF9E79F)),
-                HavaEfekti.CICEK,
-                Color(0xFF2E7D32)
+            ay in 9..11 -> HavaGorunumu(
+                listOf(Color(0xFF2B5F96), Color(0xFF6E98C6), Color(0xFFE8995A)),
+                HavaEfekti.SONBAHAR
             )
             else -> HavaGorunumu(
-                listOf(Color(0xFF1E88E5), Color(0xFF4FB3F6), Color(0xFFFFC37A)),
-                HavaEfekti.GUNES,
-                Color(0xFF1565C0)
+                listOf(Color(0xFF1976D2), Color(0xFF55A8EE), Color(0xFFFFCC80)),
+                HavaEfekti.GUNES
             )
         }
+    }
 
-        WeatherCondition.PARTLY_CLOUDY, WeatherCondition.UNKNOWN ->
-            if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF3F7CC4), Color(0xFF6E9FD6), Color(0xFFA9C6E6)),
-                HavaEfekti.BULUT,
-                Color(0xFF1565C0)
-            ) else HavaGorunumu(
-                listOf(Color(0xFF141B33), Color(0xFF2B3557), Color(0xFF4B5577)),
-                HavaEfekti.BULUT,
-                Color(0xFF3949AB)
-            )
+    return when (kosul) {
+        WeatherCondition.CLEAR,
+        WeatherCondition.MOSTLY_CLEAR,
+        WeatherCondition.PARTLY_CLOUDY -> HavaGorunumu(
+            listOf(Color(0xFF15103A), Color(0xFF34267A), Color(0xFF6A4FB8)),
+            HavaEfekti.YILDIZ
+        )
 
-        WeatherCondition.OVERCAST ->
+        WeatherCondition.OVERCAST,
+        WeatherCondition.UNKNOWN ->
             if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF55657A), Color(0xFF7A8BA0), Color(0xFFA3B1C2)),
-                HavaEfekti.BULUT,
-                Color(0xFF455A64)
+                listOf(Color(0xFF4F5F72), Color(0xFF7A8A9C), Color(0xFFA9B6C4)),
+                HavaEfekti.BULUT
             ) else HavaGorunumu(
-                listOf(Color(0xFF1C2230), Color(0xFF2E3647), Color(0xFF454E61)),
-                HavaEfekti.BULUT,
-                Color(0xFF37474F)
+                listOf(Color(0xFF1C1838), Color(0xFF332D5C), Color(0xFF55507F)),
+                HavaEfekti.BULUT
             )
 
         WeatherCondition.FOG ->
             if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF6F7A86), Color(0xFF959FAA), Color(0xFFBCC4CC)),
-                HavaEfekti.SIS,
-                Color(0xFF546E7A)
+                listOf(Color(0xFF6E7A86), Color(0xFF95A0AB), Color(0xFFBEC6CE)),
+                HavaEfekti.SIS
             ) else HavaGorunumu(
-                listOf(Color(0xFF2A2F36), Color(0xFF3E444C), Color(0xFF575E66)),
-                HavaEfekti.SIS,
-                Color(0xFF455A64)
+                listOf(Color(0xFF23282F), Color(0xFF373D45), Color(0xFF50575F)),
+                HavaEfekti.SIS
             )
 
-        WeatherCondition.DRIZZLE, WeatherCondition.RAIN, WeatherCondition.SHOWERS ->
+        WeatherCondition.DRIZZLE,
+        WeatherCondition.RAIN,
+        WeatherCondition.SHOWERS ->
             if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF2C3E50), Color(0xFF46637D), Color(0xFF6E8CA6)),
-                HavaEfekti.YAGMUR,
-                Color(0xFF1E3A5F)
+                listOf(Color(0xFF2C3E50), Color(0xFF486580), Color(0xFF6F8DA8)),
+                HavaEfekti.YAGMUR
             ) else HavaGorunumu(
-                listOf(Color(0xFF0F1A26), Color(0xFF1F3042), Color(0xFF34495E)),
-                HavaEfekti.YAGMUR,
-                Color(0xFF1E3A5F)
+                listOf(Color(0xFF121436), Color(0xFF272B63), Color(0xFF474D8E)),
+                HavaEfekti.YAGMUR
             )
 
         WeatherCondition.SNOW ->
             if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF3E6E9A), Color(0xFF6E9CC6), Color(0xFFA9CDEB)),
-                HavaEfekti.KAR,
-                Color(0xFF0277BD)
+                listOf(Color(0xFF3D6E9C), Color(0xFF6F9CC6), Color(0xFFA9CDEA)),
+                HavaEfekti.KAR
             ) else HavaGorunumu(
-                listOf(Color(0xFF16243A), Color(0xFF2D4466), Color(0xFF557096)),
-                HavaEfekti.KAR,
-                Color(0xFF01579B)
+                listOf(Color(0xFF111D30), Color(0xFF26405F), Color(0xFF4E6C92)),
+                HavaEfekti.KAR
             )
 
         WeatherCondition.THUNDERSTORM ->
             if (gunduz) HavaGorunumu(
-                listOf(Color(0xFF1F2238), Color(0xFF383B5A), Color(0xFF575A7A)),
-                HavaEfekti.FIRTINA,
-                Color(0xFF4527A0)
+                listOf(Color(0xFF1E2038), Color(0xFF363958), Color(0xFF555878)),
+                HavaEfekti.FIRTINA
             ) else HavaGorunumu(
-                listOf(Color(0xFF0B0C17), Color(0xFF1B1C2E), Color(0xFF303149)),
-                HavaEfekti.FIRTINA,
-                Color(0xFF311B92)
+                listOf(Color(0xFF08090F), Color(0xFF171828), Color(0xFF2B2C44)),
+                HavaEfekti.FIRTINA
             )
     }
 }

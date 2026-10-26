@@ -1,35 +1,41 @@
 package com.kampplus.hava.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.lifecycle.DEFAULT_ARGS_KEY
@@ -42,8 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kampplus.hava.model.KayitliKonum
 import com.kampplus.hava.ui.forecast.ForecastScreen
 import com.kampplus.hava.ui.forecast.ForecastViewModel
-import com.kampplus.hava.ui.theme.CamDugme
-import kotlinx.coroutines.launch
+import com.kampplus.hava.ui.theme.camKart
 import kotlin.math.abs
 
 const val KONUMUM_ANAHTARI = "konumum"
@@ -55,13 +60,13 @@ fun AnaEkran(
     onKonumlarimClick: () -> Unit,
     onGunSecildi: (anahtar: String, tarih: String) -> Unit,
     modifier: Modifier = Modifier,
+    onKonumEkleClick: () -> Unit = {},
     viewModel: AnaEkranViewModel = viewModel()
 ) {
     val konumlar by viewModel.konumlar.collectAsStateWithLifecycle()
     val sayfaDurumu = rememberPagerState(pageCount = { konumlar.size + 1 })
     val gidilecekSayfa by viewModel.gidilecekSayfa.collectAsStateWithLifecycle()
     val kapsam = rememberCoroutineScope()
-    val etiketListesi = rememberLazyListState()
 
     LaunchedEffect(gidilecekSayfa, konumlar.size) {
         val hedef = gidilecekSayfa ?: return@LaunchedEffect
@@ -69,12 +74,6 @@ fun AnaEkran(
             sayfaDurumu.animateScrollToPage(hedef)
             viewModel.sayfayaGidildi()
         }
-    }
-
-    // Sayfa değişince üstteki konum etiketleri de o konuma kaysın
-    LaunchedEffect(sayfaDurumu.currentPage) {
-        val hedef = sayfaDurumu.currentPage.coerceAtMost(konumlar.size)
-        etiketListesi.animateScrollToItem(hedef)
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -93,17 +92,22 @@ fun AnaEkran(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        // Kaydırırken sayfalar bir küpün yüzleri gibi dönsün (3B geçiş)
-                        val sayfaFarki = (sayfaDurumu.currentPage - sayfa) +
+                        // Bu sayfa ortadaki sayfadan ne kadar uzakta? (0 = tam ortada)
+                        val ofset = (sayfaDurumu.currentPage - sayfa) +
                             sayfaDurumu.currentPageOffsetFraction
-                        val mutlak = abs(sayfaFarki).coerceIn(0f, 1f)
+                        val mesafe = abs(ofset).coerceIn(0f, 1f)
+
+                        // 3B küp geçişi: sayfalar kenarlarından menteşeli gibi döner
                         cameraDistance = 16f * density
-                        transformOrigin = TransformOrigin(if (sayfaFarki > 0f) 1f else 0f, 0.5f)
-                        rotationY = sayfaFarki.coerceIn(-1f, 1f) * -40f
-                        val olcek = 1f - 0.08f * mutlak
+                        transformOrigin = TransformOrigin(
+                            pivotFractionX = if (ofset > 0f) 1f else 0f,
+                            pivotFractionY = 0.5f
+                        )
+                        rotationY = ofset * -35f
+                        val olcek = 1f - 0.08f * mesafe
                         scaleX = olcek
                         scaleY = olcek
-                        alpha = 1f - 0.3f * mutlak
+                        alpha = 1f - 0.3f * mesafe
                     }
             ) {
                 if (sayfa == 0) {
@@ -129,54 +133,75 @@ fun AnaEkran(
             }
         }
 
+        // Üstte: hangi sayfada olduğumuzu gösteren noktalar
+        SayfaNoktalari(
+            toplam = konumlar.size + 1,
+            secili = sayfaDurumu.currentPage,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 12.dp)
+        )
+
+        // Altta: yüzen cam menü çubuğu
         Row(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 12.dp)
+                .camKart(koseYaricap = 32.dp, opaklik = 0.22f)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            LazyRow(
-                state = etiketListesi,
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            AltMenuDugmesi(
+                simge = "📍",
+                yazi = "Konumum",
+                onClick = { kapsam.launch { sayfaDurumu.animateScrollToPage(0) } }
+            )
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .shadow(elevation = 10.dp, shape = CircleShape)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(listOf(Color(0xFFFF7E5F), Color(0xFFFEB47B)))
+                    )
+                    .clickable(onClick = onKonumEkleClick),
+                contentAlignment = Alignment.Center
             ) {
-                item(key = KONUMUM_ANAHTARI) {
-                    KonumEtiketi(
-                        yazi = "📍 Konumum",
-                        secili = sayfaDurumu.currentPage == 0,
-                        onClick = { kapsam.launch { sayfaDurumu.animateScrollToPage(0) } }
-                    )
-                }
-                itemsIndexed(konumlar, key = { _, konum -> konum.id }) { sira, konum ->
-                    KonumEtiketi(
-                        yazi = konum.ad,
-                        secili = sayfaDurumu.currentPage == sira + 1,
-                        onClick = { kapsam.launch { sayfaDurumu.animateScrollToPage(sira + 1) } }
-                    )
-                }
+                Text(
+                    text = "+",
+                    fontSize = 32.sp,
+                    lineHeight = 34.sp,
+                    fontWeight = FontWeight.Light,
+                    color = Color.White
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            CamDugme(yazi = "☰", onClick = onKonumlarimClick)
+            AltMenuDugmesi(
+                simge = "☰",
+                yazi = "Konumlarım",
+                onClick = onKonumlarimClick
+            )
         }
     }
 }
 
 @Composable
-private fun KonumEtiketi(yazi: String, secili: Boolean, onClick: () -> Unit) {
-    Box(
+private fun AltMenuDugmesi(simge: String, yazi: String, onClick: () -> Unit) {
+    Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(if (secili) Color.White else Color.White.copy(alpha = 0.2f))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(text = simge, fontSize = 20.sp, lineHeight = 24.sp, color = Color.White)
         Text(
             text = yazi,
-            color = if (secili) Color(0xFF1A237E) else Color.White,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.9f)
         )
     }
 }
@@ -200,4 +225,28 @@ private fun kayitliKonumViewModel(konum: KayitliKonum, anahtar: String): Forecas
     }
 
     return viewModel(key = anahtar, extras = ekstralar)
+}
+
+@Composable
+fun SayfaNoktalari(toplam: Int, secili: Int, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(toplam) { sira ->
+            val secilmis = sira == secili
+            val genislik by animateDpAsState(
+                targetValue = if (secilmis) 22.dp else 8.dp,
+                label = "nokta"
+            )
+            Box(
+                modifier = Modifier
+                    .padding(3.dp)
+                    .height(8.dp)
+                    .width(genislik)
+                    .clip(RoundedCornerShape(50))
+                    .background(if (secilmis) Color.White else Color.White.copy(alpha = 0.45f))
+            )
+        }
+    }
 }

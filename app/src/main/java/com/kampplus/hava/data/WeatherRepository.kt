@@ -3,6 +3,7 @@ package com.kampplus.hava.data
 import android.util.Log
 import com.kampplus.hava.model.AirQuality
 import com.kampplus.hava.model.Forecast
+import com.kampplus.hava.model.KonumOzeti
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -18,12 +19,31 @@ class WeatherRepository(
         val tahmin = tahminIstegi.await()
         val havaKalitesi = havaKalitesiIstegi.await()
 
-        Log.d(
-            "Tahmin",
-            "Hava kalitesi: şu an=${havaKalitesi?.current}, gün sayısı=${havaKalitesi?.dailyMax?.size}"
-        )
-
         tahmin.copy(airQuality = havaKalitesi)
+    }
+
+    /** Konumlarım kartları için hafif, tek günlük özet. */
+    suspend fun ozet(latitude: Double, longitude: Double): KonumOzeti {
+        val response = api.getForecast(
+            latitude = latitude,
+            longitude = longitude,
+            current = "temperature_2m,weather_code,is_day",
+            hourly = "temperature_2m",
+            daily = "temperature_2m_max,temperature_2m_min",
+            forecastDays = 1,
+            timezone = "auto"
+        )
+        val anlik = response.current ?: error("Anlık hava verisi gelmedi")
+        val gunluk = response.daily
+
+        return KonumOzeti(
+            sicaklik = anlik.temperature ?: 0.0,
+            enYuksek = gunluk?.tempMax?.firstOrNull() ?: 0.0,
+            enDusuk = gunluk?.tempMin?.firstOrNull() ?: 0.0,
+            havaKodu = anlik.weatherCode ?: 0,
+            gunduz = anlik.isDay == 1,
+            zaman = anlik.time ?: ""
+        )
     }
 
     private suspend fun tahminiGetir(latitude: Double, longitude: Double): Forecast {

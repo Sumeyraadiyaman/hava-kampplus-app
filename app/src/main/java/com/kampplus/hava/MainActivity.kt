@@ -15,7 +15,7 @@ import com.kampplus.hava.ui.theme.HavaTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Tüm ekranlar renkli arka plana sahip, bu yüzden saat ve pil simgeleri hep beyaz olsun
+        // Renkli arka planların üstünde saat/pil simgeleri beyaz görünsün
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)

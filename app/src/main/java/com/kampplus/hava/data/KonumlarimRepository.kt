@@ -39,6 +39,20 @@ class KonumlarimRepository(private val context: Context) {
         }
     }
 
+    /** Konumu listede bir yukarı (yon = -1) ya da bir aşağı (yon = +1) taşır. */
+    suspend fun tasi(id: String, yon: Int) {
+        context.konumlarDataStore.edit { tercihler ->
+            val liste = jsondanListeye(tercihler[anahtar]).toMutableList()
+            val eskiSira = liste.indexOfFirst { kayitli -> kayitli.id == id }
+            val yeniSira = eskiSira + yon
+            if (eskiSira != -1 && yeniSira in liste.indices) {
+                val konum = liste.removeAt(eskiSira)
+                liste.add(yeniSira, konum)
+                tercihler[anahtar] = gson.toJson(liste)
+            }
+        }
+    }
+
     private fun jsondanListeye(json: String?): List<KayitliKonum> {
         if (json == null) return emptyList()
         return try {

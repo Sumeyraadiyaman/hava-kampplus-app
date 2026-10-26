@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,18 +31,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kampplus.hava.model.Plakalar
 import com.kampplus.hava.model.bayrakEmoji
 import com.kampplus.hava.ui.LoadState
 import com.kampplus.hava.ui.theme.CamDugme
-import com.kampplus.hava.ui.theme.CamKart
 import com.kampplus.hava.ui.theme.HavaArkaPlani
-import com.kampplus.hava.ui.theme.ParlakDugme
 import com.kampplus.hava.ui.theme.menuGorunumu
-
-private val hataRengi = Color(0xFFFFCDD2)
 
 @Composable
 fun KonumEkleEkrani(
@@ -63,18 +61,22 @@ fun KonumEkleEkrani(
                 .systemBarsPadding()
                 .padding(horizontal = 16.dp)
         ) {
-            CamDugme(
-                yazi = "← Geri",
-                onClick = onGeriClick,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                CamDugme(metin = "← Geri", onClick = onGeriClick)
+            }
+
             Text(
                 text = "Konum ekle",
-                style = MaterialTheme.typography.headlineLarge,
+                fontSize = 34.sp,
+                lineHeight = 40.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "İl adını yazmaya başla ya da ilçe ve yurt dışı için tam adı yazıp ara.",
+                text = "İl adını yazmaya başla. İlçe, köy ya da yurt dışından bir yer için tam adını yazıp ara.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.8f)
             )
@@ -85,27 +87,27 @@ fun KonumEkleEkrani(
                 onValueChange = { yeniMetin -> viewModel.metinDegisti(yeniMetin) },
                 label = { Text(text = "İl, ilçe ya da şehir adı") },
                 singleLine = true,
-                shape = RoundedCornerShape(20.dp),
                 trailingIcon = {
                     if (uiState.metin.isNotEmpty()) {
                         IconButton(onClick = { viewModel.metinDegisti("") }) {
-                            Text(text = "✕")
+                            Text(text = "✕", color = Color.White)
                         }
                     }
                 },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { viewModel.ara() }),
+                shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
                     focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.75f),
                     cursorColor = Color.White,
-                    focusedTrailingIconColor = Color.White,
-                    unfocusedTrailingIconColor = Color.White
+                    focusedContainerColor = Color.White.copy(alpha = 0.12f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.08f)
                 ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { viewModel.ara() }),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -124,7 +126,7 @@ fun KonumEkleEkrani(
             if (hata != null) {
                 Text(
                     text = hata,
-                    color = hataRengi,
+                    color = Color(0xFFFFCDD2),
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -145,7 +147,7 @@ fun KonumEkleEkrani(
                     items(uiState.ilOnerileri) { il ->
                         KonumSatiri(
                             ad = il,
-                            altBilgi = "Türkiye, plaka ${Plakalar.bul(il) ?: "-"}",
+                            altBilgi = "🇹🇷 Türkiye · Plaka ${Plakalar.bul(il) ?: "-"}",
                             onClick = { viewModel.ilSecildi(il) },
                             onSilClick = null
                         )
@@ -154,10 +156,10 @@ fun KonumEkleEkrani(
 
                 if (uiState.metin.trim().length >= 2) {
                     item {
-                        ParlakDugme(
-                            yazi = "🔍 \"${uiState.metin.trim()}\" için tüm yerlerde ara",
+                        CamDugme(
+                            metin = "🔍 \"${uiState.metin.trim()}\" için tüm yerlerde ara",
                             onClick = { viewModel.ara() },
-                            vurgu = menuGorunumu.vurgu,
+                            vurgulu = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -176,15 +178,11 @@ fun KonumEkleEkrani(
                     }
 
                     is LoadState.Empty -> item {
-                        CamKart {
-                            Text(text = "Sonuç bulunamadı. Yerin tam adını yazmayı dene.")
-                        }
+                        Text(text = "Sonuç bulunamadı. Yerin tam adını yazmayı dene.")
                     }
 
                     is LoadState.Error -> item {
-                        CamKart {
-                            Text(text = sonuc.message, color = hataRengi)
-                        }
+                        Text(text = sonuc.message, color = Color(0xFFFFCDD2))
                     }
 
                     is LoadState.Success -> {
@@ -201,7 +199,7 @@ fun KonumEkleEkrani(
                                 .distinct()
                                 .joinToString(", ")
                             val mesafe = uiState.mesafeler[city.id]
-                            val mesafeYazisi = if (mesafe != null) ", $mesafe km uzakta" else ""
+                            val mesafeYazisi = if (mesafe != null) " · $mesafe km" else ""
 
                             KonumSatiri(
                                 ad = city.name,
